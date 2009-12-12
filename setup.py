@@ -52,18 +52,18 @@ command_classes['build_apidocs'] = BuildApiDocs
 #---------------------------------------------------------------------------# 
 # Configuration
 #---------------------------------------------------------------------------# 
-from pymodbus import __version__
+#from mamba import __version__
 
 setup(name  = 'mamba',
-    version = __version__,
+    version = "0.1",
+    #version = __version__,
     description = "A port of ruby starling to python",
     long_description='''
     Starling is a powerful but simple messaging server that enables reliable
     distributed queuing with an absolutely minimal overhead. It speaks the
     MemCache protocol for maximum cross-platform compatibility. Any language
-    that speaks MemCache can take advantage of Starling’s queue facilities.
-
-    So all that...in python
+    that speaks MemCache can take advantage of Starling's queue facilities.
+    So all that...in python.
     ''',
     classifiers = [
         'Development Status :: 4 - Beta',
@@ -90,7 +90,8 @@ setup(name  = 'mamba',
     zip_safe = True,
     install_requires = [
         'twisted >= 2.5.0',
-        'nose >= 0.9.3'
+        'nose >= 0.9.3',
+        'python-memcached >= 1.45',
     ],
     test_suite = 'nose.collector',
     cmdclass = command_classes,
