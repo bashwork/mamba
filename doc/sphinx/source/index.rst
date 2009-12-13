@@ -7,6 +7,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   library/index.rst
+
 Indices and tables
 ==================
 

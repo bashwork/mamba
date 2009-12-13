@@ -2,9 +2,14 @@
 Implementation of a Twisted Mamba Server
 ------------------------------------------
 
+Mamba is driven from the twisted asynchronous event/networking
+library. This allows mamba to be run using minimal resources
+while at the same time solving the c10k problem.
+
 Example run::
 
-    StartServer()
+    from mamba.server import StartServer
+    StartServer() # this will not return
 '''
 import time
 from twisted.internet import reactor
@@ -12,8 +17,8 @@ from twisted.internet.protocol import ServerFactory
 from twisted.protocols.basic import LineReceiver
 
 from mamba.handler import Handler
-from mamba.defaults import Defaults
 from mamba.statistics import Statistics
+from mamba.config import Options
 
 #---------------------------------------------------------------------------#
 # Logging
@@ -41,7 +46,7 @@ class MambaProtocol(LineReceiver):
         self.factory.statistics.connections += 1
         self.factory.statistics.total_connections += 1
         self.handler = self.factory.getHandler()
-        self.callbacks = {'send':self.send, 'exit':self.shutdown}
+        self.callbacks = {'send':self._send, 'exit':self._shutdown}
 
     def connectionLost(self, reason):
         ''' Callback for when a client disconnects
@@ -60,11 +65,11 @@ class MambaProtocol(LineReceiver):
         self.factory.statistics.bytes_read += len(data)
         self.handler.process(data, self.callbacks)
 
-#---------------------------------------------------------------------------#
-# Extra Helper Functions
-#---------------------------------------------------------------------------#
+    #--------------------------------------------------------------------------#
+    # Private Functions
+    #--------------------------------------------------------------------------#
 
-    def send(self, data):
+    def _send(self, data):
         ''' Send and log a message to the network
         :param data: The mamba response message
         '''
@@ -72,7 +77,7 @@ class MambaProtocol(LineReceiver):
         self.factory.statistics.bytes_written += len(data)
         return self.transport.write(data)
 
-    def shutdown(self):
+    def _shutdown(self):
         ''' Helper method to shutdown the server
 
         :return: void
@@ -94,8 +99,8 @@ class MambaServerFactory(ServerFactory):
 
         :param options: The server options to apply
         '''
-        self.path = options.get('path', Defaults.Path)
-        self.timeout = options.get('timeout', Defaults.Timeout)
+        self.path = options['path']
+        self.timeout = options['timeout']
 
     def startFactory(self):
         '''
@@ -127,17 +132,18 @@ class MambaServerFactory(ServerFactory):
         return self.handler
 
 #---------------------------------------------------------------------------# 
-# Starting Factories
+# Helper Functions
 #---------------------------------------------------------------------------# 
 def StartServer(options={}):
     ''' Helper method to start the Mamba Async TCP server
 
     :param options: The server options to apply
     '''
-    # read and parse configuration options from etc
+    opts = Options.Config()
+    opts.update(options) # source any user supplied options
     # daemonize, trap signals (twisted plugin?)
-    reactor.listenTCP(options.get('port', Defaults.Port),
-        MambaServerFactory(options=options))
+    reactor.listenTCP(options.get('port', opts['port']),
+        MambaServerFactory(options=opts))
     reactor.run()
 
 #---------------------------------------------------------------------------# 

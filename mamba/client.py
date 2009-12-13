@@ -1,11 +1,29 @@
+'''
+Mamaba Client
+------------------------------------------------------------
+
+As mamba, like starling, speaks the "memcache" protocol, any
+memcache client should be sufficient for interacting with the
+server. 
+
+However, we also define a wrapper around the standard
+memcache wrappers (cmemcache if it is available and fall-back
+to the pure python version) to simplify client code.
+'''
 import time
 try:
     import cmemcache as memcache
 except ImportError:
     import memcache
+from mamba.errors import MambaException
 
-class mamba(memcache.Client):
+#---------------------------------------------------------------------------#
+# Class definitions
+#---------------------------------------------------------------------------#
+class Client(memcache.Client):
     '''
+    A simple wrapper around a memcache client to simplify the
+    client code needed to be written.
     '''
     __wait_time = 0.25
 
@@ -35,8 +53,7 @@ class mamba(memcache.Client):
                 retries += 1
                 time.sleep(self.__wait_time)
             else: break;
-        else:
-            raise PeafowlError("Can't set value")
+        else: raise MambaException("Cannot set value on server")
 
     def sizeof(self, queue):
         '''
@@ -57,3 +74,8 @@ class mamba(memcache.Client):
         '''
         for _ in sizeof(queue):
             yield get(queue)
+
+#---------------------------------------------------------------------------# 
+# Exported symbols
+#---------------------------------------------------------------------------# 
+__all__ = [ "Client" ]

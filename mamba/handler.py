@@ -3,11 +3,20 @@ Mamba Protocol Handler
 -----------------------------------------------------------
 
 '''
-import re, os, time, logging
+import re, os, time
 from struct import pack, unpack
 from resource import getrusage, RUSAGE_SELF
 import mamba
 
+#---------------------------------------------------------------------------#
+# Logging
+#---------------------------------------------------------------------------#
+import logging
+_logger = logging.getLogger("mamba.server")
+
+#---------------------------------------------------------------------------#
+# Class definitions
+#---------------------------------------------------------------------------#
 class Handler(object):
     '''
     Class to abstact away all the handling for the mamba
@@ -28,7 +37,6 @@ class Handler(object):
         self.database = database
         self.statistics = statistics
         self.exiprations = {}
-        self.buffer = ''
 
     def process(self, command, callbacks):
         '''
@@ -38,17 +46,18 @@ class Handler(object):
         :param callbacks: The continuations to process the command result
         :return: void
         '''
-        # check if we have a set command pending
-
-        # otherwise process the request as an new command
-        for proc, regex in Messages.get_commands():
-            match = re.match(regex, command)
-            if match:
-                self.__dict__(proc)(callbacks, match)
-                break
+        # if we have a set command pending
+        if self.state: self._set_data(callbacks, command)
         else:
-            logging.debug("Received unknown command")
-            callbacks['send'](Messages.unknown_command)
+        # otherwise process the request as an new command
+            for proc, regex in Messages.get_commands():
+                match = re.match(regex, command)
+                if match:
+                    self.__dict__(proc)(callbacks, match)
+                    break
+            else:
+                _logger.debug("Received unknown command")
+                callbacks['send'](Messages.unknown_command)
 
     # ---------------------------------------------------- #
     # Private Methods
@@ -62,7 +71,7 @@ class Handler(object):
         :param match: The parameters found for the command
         :return: void
         '''
-        logging.debug("Received a SHUTDOWN command")
+        _logger.debug("Received a SHUTDOWN command")
         callbacks['exit']()
         # server is going down, no response needed
 
@@ -74,7 +83,7 @@ class Handler(object):
         :param match: The parameters found for the command
         :return: void
         '''
-        logging.debug("Received a QUIT command")
+        _logger.debug("Received a QUIT command")
         self.statistics.clean_exits += 1
         # client is exiting, no response needed
 
@@ -86,7 +95,7 @@ class Handler(object):
         :param match: The parameters found for the command
         :return: void
         '''
-        logging.debug("Received a DELETE command")
+        _logger.debug("Received a DELETE command")
         self.statistics.delete_requests += 1
 
         key = match.group(1)
@@ -101,24 +110,31 @@ class Handler(object):
         :param match: The parameters found for the command
         :return: void
         '''
-        logging.debug("Received a SET command")
+        _logger.debug("Received a SET command")
         self.statistics.set_requests += 1
 
         key, flags, expire, length = (
             match.group(1), match.group(2), match.group(3), match.group(4))
+        self.state = {'key': key, 'flags':flags, 'expire':expire, 'length':length}
+        self.buffer = '' # start state machine
 
-        # state machine...ugh
-        data = self.handle.read(length)
-        data_end = self.handle.read(2)
-        # state machine...ugh
+    def _set_data(self, callbacks, data):
+        '''
+        Wrapper around the actually setting the resulting data
 
-        self.statistics.bytes_read += (length + 2)
-        if data_end == '\r\n' and len(data) == length:
-            compressed = pack(Messages.data_pack_format % (length, flags, expire, data))
+        :param callbacks: The continuations to send the results to
+        :param data: The next chunk of data to process
+        :return: void
+        '''
+        self.buffer += data # what if we get overlapped commands ?
+        if len(self.buffer) == self.state['length'] and buffer[-2:] == '\r\n':
+            _logger.debug("Finishing SET command")
+            compressed = pack(Messages.data_pack_format % (
+                length, flags, expire, self.buffer))
             if self.database.put(key, compressed):
                 callbacks['send'](Messages.set_response_success)
             else: callbacks['send'](Messages.set_response_failure)
-        else: callbacks['send'](Messages.set_client_data_error)
+            self.buffer, self.state = ('', None) # reset
 
     def _get_next_message(self, key):
         '''
@@ -147,7 +163,7 @@ class Handler(object):
         :param match: The parameters found for the command
         :return: void
         '''
-        logging.debug("Received a GET command")
+        _logger.debug("Received a GET command")
         self.statistics.get_requests += 1
 
         key = match.group(1)
@@ -164,7 +180,7 @@ class Handler(object):
         :param match: The parameters found for the command
         :return: void
         '''
-        logging.debug("Received a STATS command")
+        _logger..debug("Received a STATS command")
         callbacks['send'](Messages.stats_response % (
             os.getpid(),                              # server pid
             time.time() - self.statistics.start_time, # total uptime
@@ -269,12 +285,12 @@ STAT queue_%(name)s_expired_items %(expire)d\r"""
 
     # helper to clean up processing code
     _commands = {
-        '_delete':     delete_command,
         '_get':        get_command,
         '_set':        set_command,
+        '_delete':     delete_command,
+        '_statistics': stats_command,
         '_quit':       quit_command,
         '_shutdown':   shutdown_command,
-        '_statistics': stats_command,
     }
 
     @staticmethod

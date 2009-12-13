@@ -1,10 +1,19 @@
 '''
 '''
-import os, time, logging
+import os, time
 from struct import pack, unpack
 from Queue import Queue
 from mamba.errors import TransactionLogException
 
+#---------------------------------------------------------------------------#
+# Logging
+#---------------------------------------------------------------------------#
+import logging
+_logger = logging.getLogger("mamba.queue")
+
+#---------------------------------------------------------------------------#
+# Local helpers
+#---------------------------------------------------------------------------#
 def file_iterator(fd):
     ''' Simply helper to make code cleaner '''
     while True:
@@ -12,6 +21,9 @@ def file_iterator(fd):
         if not value: break
         yield value
 
+#---------------------------------------------------------------------------#
+# Class definitions
+#---------------------------------------------------------------------------#
 class PersistentQueue(Queue):
     '''
     PersistentQueue is a subclass of Python synchronized class. It adds a 
@@ -76,6 +88,7 @@ class PersistentQueue(Queue):
         :return: void
         '''
         # TODO find a way to do this without another lock?
+        _logger.debug("Closing the queue %s" % self.name)
         temp = self.transactions
         self.transactions = None
         temp.close()
@@ -86,7 +99,7 @@ class PersistentQueue(Queue):
 
         :return: void
         '''
-        logging.debug("Purging the entire transaction for %s" % self.queue_name)
+        _logger.debug("Purging the entire transaction for %s" % self.name)
         self.close()
         if os.path.exists(self.log_path):
             os.remove(self.log_path)
@@ -113,6 +126,7 @@ class PersistentQueue(Queue):
         :return: void
         '''
         # guard with a reader writer lock?
+        _logger.debug("Rotating log for queue %s" % self.name)
         self.transactions.close()
         os.rename(self.log_path, "%s.%s" % (self.log_path, time.time()))
         self._open_log()
@@ -124,6 +138,7 @@ class PersistentQueue(Queue):
         :return: void
         '''
         if test and not self.transactions:
+            _logger.error("Transaction log not available for queue %s" % self.name)
             raise TransactionLogException("Transaction log not available")
 
     def _read_command(self, fd):
@@ -150,7 +165,7 @@ class PersistentQueue(Queue):
         self._open_log()
         bytes_read = 0
 
-        logging.debug("Reading back transaction log for queue %s" % self.name)
+        _logger.debug("Reading back transaction log for queue %s" % self.name)
         for cmd in file_iterator(self.transactions):
             if cmd == self.__trx_cmd_push:
                 (size, data) = _read_command(self.transactions)
@@ -160,8 +175,8 @@ class PersistentQueue(Queue):
             elif cmd == self.__trx_cmd_pop:
                 bytes_read -= len(self.get(False))
             else:
-                logging.warning("Invalid command(%s) in transaction log" % cmd)
-        logging.debug("Finished reading back transaction log for queue %s" % self.name)
+                _logger.warning("Invalid command(%s) in transaction log" % cmd)
+        _logger.debug("Finished reading back transaction log for queue %s" % self.name)
         return bytes_read
 
     def _transaction(self, data):
