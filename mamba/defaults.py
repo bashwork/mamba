@@ -12,6 +12,7 @@ class Defaults(object):
     Port    = 22122
     Timeout = 60
     Path    = "/tmp/starling"
+    Pidfile = "/var/run/mamba.pid"
 
 #---------------------------------------------------------------------------# 
 # Exported Identifiers

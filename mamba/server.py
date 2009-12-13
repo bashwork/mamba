@@ -4,16 +4,16 @@ Implementation of a Twisted Mamba Server
 
 Example run::
 
-    context = ModbusServerContext(d=[0,100], c=[0,100], h=[0,100], i=[0,100])
-    reactor.listenTCP(502, ModbusServerFactory(context))
-    reactor.run()
+    StartServer()
 '''
+import time
 from twisted.internet import reactor
-from twisted.internet.protocol import Protocol, ServerFactory
+from twisted.internet.protocol import ServerFactory
 from twisted.protocols.basic import LineReceiver
 
 from mamba.handler import Handler
 from mamba.defaults import Defaults
+from mamba.statistics import Statistics
 
 #---------------------------------------------------------------------------#
 # Logging
@@ -38,7 +38,8 @@ class MambaProtocol(LineReceiver):
         __init__ method.     
         '''
         _logger.debug("Client Connected [%s]" % self.transport.getHost())
-        self.factory.stats.connections += 1
+        self.factory.statistics.connections += 1
+        self.factory.statistics.total_connections += 1
         self.handler = self.factory.getHandler()
 
     def connectionLost(self, reason):
@@ -47,15 +48,15 @@ class MambaProtocol(LineReceiver):
         :param reason: The client's reason for disconnecting
         '''
         _logger.debug("Client Disconnected")
-        self.factory.stats.connections -= 1
+        self.factory.statistics.connections -= 1
 
     def lineRecieved(self, data):
         ''' Callback when we receive any data
 
         :param data: The data sent by the client
         '''
-        _logger.debug("RX: %s", data))
-        self.factory.stats.bytes_read += len(data)
+        logger.debug("RX: %s", data)
+        self.factory.statistics.bytes_read += len(data)
         self.handler.process(data, self.send)
 
 #---------------------------------------------------------------------------#
@@ -67,7 +68,7 @@ class MambaProtocol(LineReceiver):
         :param data: The mamba response message
         '''
         _logger.debug('TX: %s' % data)
-        self.factory.stats.bytes_written += len(data)
+        self.factory.statistics.bytes_written += len(data)
         return self.transport.write(data)
 
 class MambaServerFactory(ServerFactory):
@@ -87,14 +88,21 @@ class MambaServerFactory(ServerFactory):
         self.timeout = options.get('timeout', Defaults.Timeout)
 
     def startFactory(self):
-        ''' Callback for when the server is started up
+        '''
+        Callback for when the server is started up
+
+        :return: void
         '''
         _logger.debug('Mamba Stared on %s:%s' % (self.host, self.port))
         self.database = QueueCollection()
-        self.stats = QueueCollection()
+        self.statistics = Statistics()
+        self.statistics.start_time = time.time()
 
     def stopFactory(self):
-        ''' Callback for when the server is shut down
+        '''
+        Callback for when the server is shut down
+
+        :return: void
         '''
         self.database.close()
 
@@ -111,7 +119,7 @@ class MambaServerFactory(ServerFactory):
 #---------------------------------------------------------------------------# 
 # Starting Factories
 #---------------------------------------------------------------------------# 
-def StartServer(options):
+def StartServer(options={}):
     ''' Helper method to start the Mamba Async TCP server
 
     :param options: The server options to apply

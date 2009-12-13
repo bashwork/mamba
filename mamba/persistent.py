@@ -75,7 +75,7 @@ class PersistentQueue(Queue):
 
         :return: void
         '''
-        self.
+        # TODO
         pass
 
     def purge(self):
@@ -151,7 +151,7 @@ class PersistentQueue(Queue):
         logging.debug("Reading back transaction log for queue %s" % self.name)
         for cmd in file_iterator(self.transactions):
             if cmd == self.__trx_cmd_push:
-                (size, data) = _read_command(self.transactions):
+                (size, data) = _read_command(self.transactions)
                 if not data: continue
                 self.put(data, False)
                 bytes_read -= size
@@ -177,3 +177,8 @@ class PersistentQueue(Queue):
         self.log_size += len(data)
         if self.log_size > self.__max_size and self.qsize() == 0:
             self._rotate_log()
+
+#---------------------------------------------------------------------------# 
+# Exported Identifiers
+#---------------------------------------------------------------------------# 
+__all__ = [ "PersistentQueue" ]

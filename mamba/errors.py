@@ -20,10 +20,15 @@ class TransactionLogException(MambaException):
     '''
     pass
 
-class QueueCollectionException(MamabaException):
+class QueueCollectionException(MambaException):
     '''
     Exception that is thrown when there is undefined behaviour
     with the queue collection
     '''
     pass
 
+#---------------------------------------------------------------------------# 
+# Exported Identifiers
+#---------------------------------------------------------------------------# 
+__all__ = [ "MambaException", "TransactionLogException",
+            "QueueCollectionException" ]
