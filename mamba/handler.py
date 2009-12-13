@@ -6,7 +6,7 @@ Mamba Protocol Handler
 import re, os, time, logging
 from struct import pack, unpack
 from resource import getrusage, RUSAGE_SELF
-from mamba import __version__
+import mamba
 
 class Handler(object):
     '''
@@ -27,152 +27,149 @@ class Handler(object):
         '''
         self.database = database
         self.statistics = statistics
+        self.exiprations = {}
+        self.buffer = ''
 
-    def process(self, command, callback):
+    def process(self, command, callbacks):
         '''
         Main handler processing function for new client request
 
         :param command: The command to issue against the queue
-        :param callback: The continuation to send the result to
+        :param callbacks: The continuations to process the command result
         :return: void
         '''
-        # TODO clean this up
-        m = re.match(Messages.set_command, command)
-        if m:
-            self._set(callback, m.group(1), m.group(2), m.group(3), m.group(4))
-            return
-        m = re.match(Messages.get_command, command)
-        if m:
-            self._get(callback, m.group(1))
-            return
-        m = re.match(Messages.stats_command, command)
-        if m:
-            self._get_statistics(callback)
-            return
-        m = re.match(Messages.delete_command, command)
-        if m:
-            self._delete(callback, m.group(1))
-            return
-        m = re.match(Messages.quit_command, command)
-        if m:
-            self._quit(callback)
-            return
-        m = re.match(Messages.shutdown_command, command)
-        if m:
-            self._shutdown(callback)
-            return
-        logging.debug("Received unknown command")
-        callback(Messages.unknown_command)
+        # check if we have a set command pending
+
+        # otherwise process the request as an new command
+        for proc, regex in Messages.get_commands():
+            match = re.match(regex, command)
+            if match:
+                self.__dict__(proc)(callbacks, match)
+                break
+        else:
+            logging.debug("Received unknown command")
+            callbacks['send'](Messages.unknown_command)
 
     # ---------------------------------------------------- #
     # Private Methods
     # ---------------------------------------------------- #
 
-    def _shutdown(self, callback):
+    def _shutdown(self, callbacks, match):
         '''
         Wrapper around the client shutdown operation
 
-        :param callback: The continuation to send the result to
+        :param callbacks: The continuations to send the results to
+        :param match: The parameters found for the command
         :return: void
         '''
         logging.debug("Received a SHUTDOWN command")
+        callbacks['exit']()
         # server is going down, no response needed
-        # TODO stop the server
 
-    def _quit(self, callback):
+    def _quit(self, callbacks, match):
         '''
         Wrapper around the client quit operation
 
-        :param callback: The continuation to send the result to
+        :param callbacks: The continuations to send the results to
+        :param match: The parameters found for the command
         :return: void
         '''
         logging.debug("Received a QUIT command")
         self.statistics.clean_exits += 1
         # client is exiting, no response needed
 
-    def _delete(self, callback, key):
+    def _delete(self, callbacks, match):
         '''
-        Wrapper around the queue set operation
+        Wrapper around the queue delete operation
 
-        :param callback: The continuation to send the result to
+        :param callbacks: The continuations to send the results to
+        :param match: The parameters found for the command
         :return: void
         '''
         logging.debug("Received a DELETE command")
         self.statistics.delete_requests += 1
-        self.database.delete(key)
-        callback(Message.delete_response)
 
-    def _set(self, callback, key, flags, expiry, length):
+        key = match.group(1)
+        self.database.delete(key)
+        callbacks['send'](Messages.delete_response)
+
+    def _set(self, callbacks, match):
         '''
         Wrapper around the queue set operation
 
-        :param callback: The continuation to send the result to
+        :param callbacks: The continuations to send the results to
+        :param match: The parameters found for the command
         :return: void
         '''
         logging.debug("Received a SET command")
         self.statistics.set_requests += 1
 
-        # TODO check this
-        length = int(length)
-        data = self.file.read(length)
-        data_end = self.file.read(2)
-        self.stats['bytes_read'] += (length + 2)
+        key, flags, expire, length = (
+            match.group(1), match.group(2), match.group(3), match.group(4))
+
+        # state machine...ugh
+        data = self.handle.read(length)
+        data_end = self.handle.read(2)
+        # state machine...ugh
+
+        self.statistics.bytes_read += (length + 2)
         if data_end == '\r\n' and len(data) == length:
-            internal_data = pack(DATA_PACK_FMT % (length), int(flags), int(expiry), data)
-            if self.queue_collection.put(key, internal_data):
-                logging.debug("SET command is a success")
-                response = Message.set_response_success
-            else:
-                logging.warning("SET command failed")
-                response = Message.set_response_failure
-        else:
-            logging.error("SET command failed hard")
-            response = Message.set_client_data_error
-        callback(SET_CLIENT_DATA_ERROR)
+            compressed = pack(Messages.data_pack_format % (length, flags, expire, data))
+            if self.database.put(key, compressed):
+                callbacks['send'](Messages.set_response_success)
+            else: callbacks['send'](Messages.set_response_failure)
+        else: callbacks['send'](Messages.set_client_data_error)
+
+    def _get_next_message(self, key):
+        '''
+        Helper method to abstract away from getting the next valid
+        non expired message out of a queue
+
+        :param key: The key to retrieve the next message from
+        :return: The next message, or None if none exist
+        '''
+        now = time.time()
+        result = None
+        for message in self.database.get(key):
+            flag, expire, result = unpack(
+                Messages.data_pack_format % (len(response) - 8), message)
+            if expire == 0 or expire >= now:
+                break
+            self.exiprations[key] = 1 + self.expirations.get(key, 0)
+            flag, expire, result = (None, None, None) # reset results
+        return result
     
-    def _get(self, callback, key):
+    def _get(self, callbacks, match):
         '''
         Wrapper around the queue get operation
 
-        :param callback: The continuation to send the result to
+        :param callbacks: The continuations to send the results to
+        :param match: The parameters found for the command
         :return: void
         '''
         logging.debug("Received a GET command")
         self.statistics.get_requests += 1
 
-        # TODO check this
-        now = time.time()
-        data = None
-        response = self.queue_collection.take(key)
-        while response:
-            flags, expiry, data = unpack(DATA_PACK_FMT % (len(response) - 8), response)
-            if expiry == 0 or expiry >= now:
-                break
-            if self.expiry_stats.has_key(key):
-                self.expiry_stats[key] += 1
-            else:
-                self.expiry_stats[key] = 1
-            flags, expiry, data = None, None, None
-            response = self.queue_collection.take(key)
-
-        if data:
-            response = Message.get_response % (key, flags, len(data), data)
-        else: response = Message.get_response_empty
-        callback(response)
+        key = match.group(1)
+        message = self._get_next_message(key)
+        if message:
+            callbacks['send'](Messages.get_response % (key, flags, len(data), data))
+        else: callbacks['send'](Messages.get_response_empty)
     
-    def _get_statistics(self, callback):
+    def _statistics(self, callbacks, match):
         '''
         Wrapper around the server statistics retrieval operation
 
-        :param callback: The continuation to send the result to
+        :param callbacks: The continuations to send the results to
+        :param match: The parameters found for the command
         :return: void
         '''
         logging.debug("Received a STATS command")
-        callback(Message.stats_response % (
+        callbacks['send'](Messages.stats_response % (
             os.getpid(),                              # server pid
             time.time() - self.statistics.start_time, # total uptime
             time.time(),                              # current time
-            __version__,                              # server version
+            mamba.__version__,                        # server version
             getrusage(RUSAGE_SELF)[0],                # user processor time
             getrusage(RUSAGE_SELF)[1],                # system processor time
             self.database.get_stats('current_size'),
@@ -190,27 +187,23 @@ class Handler(object):
             self._get_queue_statistics()
         ))
         
-    def _get_queue_statistics(self, callback):
+    def _get_queue_statistics(self):
         '''
         Wrapper around the queue statistics retrieval operation
 
-        :param callback: The continuation to send the result to
-        :return: void
+        :return: The combined statistics for each queue
         '''
-        # TODO this can be done better, fix when we do queue-coll
+        # TODO clean this up
         response = ''
         for name in self.database.get_queues():
             queue = self.database.get_queues(name)
-            if self.expiry_stats.has_key(name):
-                expiry_stats = self.expiry_stats[name]
-            else:
-                expiry_stats = 0
-            response += Message.queue_stats_response % ({
+            expire_count = self.expirations.get(name, 0)
+            response += Messages.queue_stats_response % ({
                 'name':   name,               # queue name
                 'size':   queue.qsize(),      # number of queues
                 'total':  queue.total_items,  # total number of items in all queues
                 'logs':   queue.log_size,     # current queue log size
-                'expire': expiry_stats})      # current expiration statistics
+                'expire': expire_count})      # current expiration statistics
         return response
 
 # -------------------------------------------------------- #
@@ -221,6 +214,7 @@ class Messages(object):
     The static protocol messages and regular expressions for the
     starling protocol.
     '''
+
     # mamba common constants
     data_pack_format      = "!II%ss"
     unknown_command       = "CLIENT_ERROR bad command line format\r\n"
@@ -228,7 +222,7 @@ class Messages(object):
     # mamba get constants
     get_command           = r'^get (.{1,250})\r\n$'
     get_response          = "VALUE %s %s %s\r\n%s\r\nEND\r\n"
-    get_response_nil      = "END\r\n"
+    get_response_empty    = "END\r\n"
    
     # mamba set constants
     set_command           = r'^set (.{1,250}) ([0-9]+) ([0-9]+) ([0-9]+)\r\n$'
@@ -237,15 +231,15 @@ class Messages(object):
     set_client_data_error = "CLIENT_ERROR bad data chunk\r\nERROR\r\n"
    
     # mamba delete constants
-    delete_command           = r'\Adelete (.{1,250}) ([0-9]+)\r\n$'
-    delete_response          = "END\r\n"
+    delete_command        = r'^delete (.{1,250}) ([0-9]+)\r\n$'
+    delete_response       = "END\r\n"
 
     # mamba stop commands
-    shutdown_command      = r'\Ashutdown\r\n$'
-    quit_command          = r'\Aquit\r\n$'
+    shutdown_command      = r'^shutdown\r\n$'
+    quit_command          = r'^quit\r\n$'
    
     # mamba statistics constants
-    stats_command         = r'stats\r\n$'
+    stats_command         = r'^stats\r\n$'
     stats_response        = """STAT pid %d\r
 STAT uptime %d\r
 STAT time %d\r
@@ -272,3 +266,26 @@ STAT queue_%(name)s_items %(size)d\r
 STAT queue_%(name)s_total_items %(total)d\r
 STAT queue_%(name)s_logsize %(logs)d\r
 STAT queue_%(name)s_expired_items %(expire)d\r"""
+
+    # helper to clean up processing code
+    _commands = {
+        '_delete':     delete_command,
+        '_get':        get_command,
+        '_set':        set_command,
+        '_quit':       quit_command,
+        '_shutdown':   shutdown_command,
+        '_statistics': stats_command,
+    }
+
+    @staticmethod
+    def get_commands():
+        '''
+        Helper method to return an iterator over the mamba commands
+        as well as the callbacks processors used to evaluate the
+        command results
+
+        :return: The iterator for the command types
+        '''
+        for pair in Methods._commands.iteritems():
+            yield pair
+

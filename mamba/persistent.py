@@ -75,8 +75,10 @@ class PersistentQueue(Queue):
 
         :return: void
         '''
-        # TODO
-        pass
+        # TODO find a way to do this without another lock?
+        temp = self.transactions
+        self.transactions = None
+        temp.close()
 
     def purge(self):
         '''

@@ -41,6 +41,7 @@ class MambaProtocol(LineReceiver):
         self.factory.statistics.connections += 1
         self.factory.statistics.total_connections += 1
         self.handler = self.factory.getHandler()
+        self.callbacks = {'send':self.send, 'exit':self.shutdown}
 
     def connectionLost(self, reason):
         ''' Callback for when a client disconnects
@@ -57,7 +58,7 @@ class MambaProtocol(LineReceiver):
         '''
         logger.debug("RX: %s", data)
         self.factory.statistics.bytes_read += len(data)
-        self.handler.process(data, self.send)
+        self.handler.process(data, self.callbacks)
 
 #---------------------------------------------------------------------------#
 # Extra Helper Functions
@@ -70,6 +71,15 @@ class MambaProtocol(LineReceiver):
         _logger.debug('TX: %s' % data)
         self.factory.statistics.bytes_written += len(data)
         return self.transport.write(data)
+
+    def shutdown(self):
+        ''' Helper method to shutdown the server
+
+        :return: void
+        '''
+        try:
+            reactor.stop()
+        except: logging.error("Silencing reactor shutdown")
 
 class MambaServerFactory(ServerFactory):
     '''
