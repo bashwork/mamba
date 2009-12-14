@@ -55,7 +55,7 @@
     {%- block sidebarlogo %}
     {%- if logo %}
       <p class="logo"><a href="{{ pathto(master_doc) }}">
-        <img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
+        <img class="logo" src="{{ pathto('static/' + logo, 1) }}" alt="Logo"/>
       </a></p>
     {%- endif %}
     {%- endblock %}
@@ -69,7 +69,7 @@
     {%- if show_source and has_source and sourcename %}
       <h3>{{ _('This Page') }}</h3>
       <ul class="this-page-menu">
-        <li><a href="{{ pathto('_sources/' + sourcename, true)|e }}"
+        <li><a href="{{ pathto('sources/' + sourcename, true)|e }}"
                rel="nofollow">{{ _('Show Source') }}</a></li>
       </ul>
     {%- endif %}
