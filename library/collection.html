@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>collection — Mamba Queue Collection &mdash; Mamba v1.0 documentation</title>
-    <link rel="stylesheet" href="../static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../static/adctheme.css" type="text/css" />
     <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
@@ -19,31 +19,74 @@
     </script>
     <script type="text/javascript" src="../static/jquery.js"></script>
     <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="shortcut icon" href="../static/favicon.ico"/>
     <link rel="top" title="Mamba v1.0 documentation" href="../index.html" />
     <link rel="up" title="Mamba Library API Documentation" href="index.html" />
     <link rel="next" title="config — Mamba Configuration" href="config.html" />
     <link rel="prev" title="client — Mamba Client" href="client.html" /> 
   </head>
   <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../modindex.html" title="Global Module Index"
-             accesskey="M">modules</a> |</li>
-        <li class="right" >
-          <a href="config.html" title="config — Mamba Configuration"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="client.html" title="client — Mamba Client"
-             accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Mamba v1.0 documentation</a> &raquo;</li>
-          <li><a href="index.html" accesskey="U">Mamba Library API Documentation</a> &raquo;</li> 
+<div id="docstitle">
+	<p>Mamba v1.0 documentation</p>
+</div>
+<div id="header">
+	<div id="title"><h1>collection — Mamba Queue Collection</h1></div>
+	<ul id="headerButtons">
+		<li id="toc_button"><div class="headerButton"><a href="#">Table of Contents</a></div></li>
+		<li id="page_buttons">
+			<div class="headerButton"><a href="../genindex.html" title="General Index" accesskey="I">index</a></div>
+			<div class="headerButton"><a href="../modindex.html" title="Global Module Index" accesskey="M">modules</a></div>
+			<div class="headerButton"><a href="config.html" title="config — Mamba Configuration" accesskey="N">next</a></div>
+			<div class="headerButton"><a href="client.html" title="client — Mamba Client" accesskey="P">previous</a></div>
+		</li>
+	</ul>
+</div>
+
+<div id="sphinxsidebar">
+  <div class="sphinxsidebarwrapper">
+	<ul><li class="toctree-l1"><a href="../index.html">Main Page</a></li></ul>
+	<ul class="current">
+<li class="toctree-l1 current"><a class="reference external" href="index.html">Mamba Library API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference external" href="client.html"><tt class="docutils literal"><span class="pre">client</span></tt> &#8212; Mamba Client</a></li>
+<li class="toctree-l2 current"><a class="current reference external" href=""><tt class="docutils literal"><span class="pre">collection</span></tt> &#8212; Mamba Queue Collection</a></li>
+<li class="toctree-l2"><a class="reference external" href="config.html"><tt class="docutils literal"><span class="pre">config</span></tt> &#8212; Mamba Configuration</a></li>
+<li class="toctree-l2"><a class="reference external" href="defaults.html"><tt class="docutils literal"><span class="pre">defaults</span></tt> &#8212; Mamba Default Configuration</a></li>
+<li class="toctree-l2"><a class="reference external" href="errors.html"><tt class="docutils literal"><span class="pre">errors</span></tt> &#8212; Mamba Errors</a></li>
+<li class="toctree-l2"><a class="reference external" href="handler.html"><tt class="docutils literal"><span class="pre">handler</span></tt> &#8212; Mamba Protocol Handler</a></li>
+<li class="toctree-l2"><a class="reference external" href="persistent.html"><tt class="docutils literal"><span class="pre">persistent</span></tt> &#8212; Mamba Persistent Queue</a></li>
+<li class="toctree-l2"><a class="reference external" href="server.html"><tt class="docutils literal"><span class="pre">server</span></tt> &#8212; Mamba Server</a></li>
+<li class="toctree-l2"><a class="reference external" href="statistics.html"><tt class="docutils literal"><span class="pre">statistics</span></tt> &#8212; Mamba Statistics Dictionary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="index.html#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+      <h3>This Page</h3>
+      <ul class="this-page-menu">
+        <li><a href="../sources/library/collection.txt"
+               rel="nofollow">Show Source</a></li>
       </ul>
-    </div>  
+    <div id="searchbox" style="display: none">
+      
+        <form class="search" action="../search.html" method="get">
+			<div class="search-wrapper">
+			<span class="search-left"></span>
+			<input class="prettysearch" type="text" name="q" size="18" />
+			<span class="search-right">&nbsp;</span>
+			</div>
+          <input type="submit" value="Search" class="searchbutton" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        <p class="searchtip" style="font-size: 90%">
+        Enter search terms or a module, class or function name.
+        </p>
+    </div>
+    <script type="text/javascript">$('#searchbox').show(0);</script>
+  </div>
+</div>
+
+
 
     <div class="document">
       <div class="documentwrapper">
@@ -178,72 +221,21 @@ Valid statistics are:</p>
 </div>
 
 
-          </div>
+          </div> 
         </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <h3><a href="../index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href=""><tt class="docutils literal"><span class="pre">collection</span></tt> &#8212; Mamba Queue Collection</a><ul>
-<li><a class="reference external" href="#module-mamba.collection">API Documentation</a><ul>
-<li><a class="reference external" href="#queue-collection">Queue Collection</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="client.html"
-                                  title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">client</span></tt> &#8212; Mamba Client</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="config.html"
-                                  title="next chapter"><tt class="docutils literal"><span class="pre">config</span></tt> &#8212; Mamba Configuration</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="../sources/library/collection.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="../search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../modindex.html" title="Global Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="config.html" title="config — Mamba Configuration"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="client.html" title="client — Mamba Client"
-             >previous</a> |</li>
-        <li><a href="../index.html">Mamba v1.0 documentation</a> &raquo;</li>
-          <li><a href="index.html" >Mamba Library API Documentation</a> &raquo;</li> 
-      </ul>
-    </div>
     <div class="footer">
+    <p>
       &copy; Copyright 2009, Galen Collins.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+	</p>
     </div>
+      <div class="clearer"></div>
+    </div>
+	<div id="breadcrumbs">
+		<a href="index.html" accesskey="U">Mamba Library API Documentation</a><img src="triangle_closed.png" alt="Right arrow">
+		<a href="../index.html">Mamba v1.0 documentation</a>
+		</ul>
+	</div>
   </body>
 </html>
