@@ -6,19 +6,16 @@ Mamba is first configured by its configuration file which
 is sourced from /etc/mamba-config.yml. The user can override
 configuration values by supplying them via command line.
 '''
+import yaml
 from optparse import OptionParser
-
-# load the yaml parser
-from yaml import load
-try:
-    from yaml import CLoader as Loader
-except ImportError:
-    from yaml import Loader
 from mamba.defaults import Defaults
 
 class Options(object):
     '''
+    Helper class to abstract away reading options
+    from command line and configuration files.
     '''
+
     @staticmethod
     def CommandLine():
         '''
@@ -27,43 +24,33 @@ class Options(object):
         :return: Dictionary of command line options
         '''
         opts, args = Options._get_parse_options()
-        return opts
+        return opts.__dict__
 
     @staticmethod
-    def ConfigFile():
+    def ConfigFile(file=Defaults.Config):
         '''
         Parse configuration options from the config file
 
+        :param file: The config file to parse or default
         :return: Dictionary of config file options
         '''
-        steam = _get_config_file(Defaults.Config)
-        opts = load(stream, Loader=Loader)
-        return opts['mamba'] if opts else {}
+        try:
+            with open(file) as stream:
+                options = yaml.load(stream)
+        except: options = None
+        return options['mamba'] if options else {}
 
     @staticmethod
-    def Config():
+    def Config(file=Defaults.Config):
         '''
         Parse configuration options and merge from all sources
 
+        :param file: The config file to parse or default
         :return: Dictionary of all combined options
         '''
-        opts = Options.ConfigFile()
+        opts = Options.ConfigFile(file)
         opts.update(Options.CommandLine())
         return opts
-
-    @staticmethod
-    def _get_config_file(file):
-        '''
-        Helper method to get a file stream handle
-
-        :param file: The file ot open a read stream
-        :return: A handle to the requested file
-        '''
-        result = ''
-        try:
-            fd = open(file, 'r')
-        except: pass # just return something
-        return result
 
     @staticmethod
     def _get_parse_options():
@@ -96,7 +83,6 @@ class Options(object):
         parser.add_option("-v", action="count",
             dest="log_level", help="increase logging verbosity",
             default=Defaults.Loglevel)
-        parser.set_defaults(verbose=True)
         return parser.parse_args()
 
 #---------------------------------------------------------------------------# 
