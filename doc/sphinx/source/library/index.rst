@@ -13,7 +13,6 @@ Contents:
    defaults.rst
    errors.rst
    handler.rst
-   index.rst
    persistent.rst
    server.rst
    statistics.rst

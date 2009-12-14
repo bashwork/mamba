@@ -180,7 +180,7 @@ class Handler(object):
         :param match: The parameters found for the command
         :return: void
         '''
-        _logger..debug("Received a STATS command")
+        _logger.debug("Received a STATS command")
         callbacks['send'](Messages.stats_response % (
             os.getpid(),                              # server pid
             time.time() - self.statistics.start_time, # total uptime
