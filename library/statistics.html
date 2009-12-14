@@ -1,0 +1,159 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>statistics — Mamba Statistics Dictionary &mdash; Mamba v1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Mamba v1.0 documentation" href="../index.html" />
+    <link rel="up" title="Mamba Library API Documentation" href="index.html" />
+    <link rel="prev" title="server — Mamba Server" href="server.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="server.html" title="server — Mamba Server"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Mamba v1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Mamba Library API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-statistics">
+<h1><tt class="xref docutils literal"><span class="pre">statistics</span></tt> &#8212; Mamba Statistics Dictionary<a class="headerlink" href="#module-statistics" title="Permalink to this headline">¶</a></h1>
+<p><em>Module author: Galen Collins &lt;<a class="reference external" href="mailto:bashwork&#37;&#52;&#48;gmail&#46;com">bashwork<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</em></p>
+<p><em>Section author: Galen Collins &lt;<a class="reference external" href="mailto:bashwork&#37;&#52;&#48;gmail&#46;com">bashwork<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</em></p>
+<div class="section" id="module-mamba.statistics">
+<h2>API Documentation<a class="headerlink" href="#module-mamba.statistics" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="mamba-statistics">
+<h3>Mamba Statistics<a class="headerlink" href="#mamba-statistics" title="Permalink to this headline">¶</a></h3>
+<p>In order to allow users to know the status of the currently
+running mamba servers, we provide the following statistics:</p>
+<ul class="simple">
+<li>server total uptime</li>
+<li>server time</li>
+<li>server version</li>
+<li>server user processor usage</li>
+<li>server system processor usage</li>
+<li>current numer of queues</li>
+<li>total number of queues that existed</li>
+<li>the current server memory usage</li>
+<li>current number of connections to the server</li>
+<li>total connections ever on the server</li>
+<li>number of get commands</li>
+<li>number of set commands</li>
+<li>queue get hits</li>
+<li>queue get misses</li>
+<li>network bytes read by server</li>
+<li>network bytes written by server</li>
+<li>the current server memory limit</li>
+</ul>
+<p>We also provide per queue statistics as well. For each queue
+we provide the following statistics:</p>
+<ul class="simple">
+<li>number of items in the queue</li>
+<li>number of items ever in the queue</li>
+<li>current size of queue persistence log</li>
+<li>numer of total expired items</li>
+</ul>
+</div>
+<dl class="class">
+<dt id="mamba.statistics.Statistics">
+<em class="property">class </em><tt class="descclassname">mamba.statistics.</tt><tt class="descname">Statistics</tt><a class="headerlink" href="#mamba.statistics.Statistics" title="Permalink to this definition">¶</a></dt>
+<dd>A helper object to give us property access to the statistics
+for the mamba server.</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href=""><tt class="docutils literal"><span class="pre">statistics</span></tt> &#8212; Mamba Statistics Dictionary</a><ul>
+<li><a class="reference external" href="#module-mamba.statistics">API Documentation</a><ul>
+<li><a class="reference external" href="#mamba-statistics">Mamba Statistics</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="server.html"
+                                  title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">server</span></tt> &#8212; Mamba Server</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/library/statistics.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="server.html" title="server — Mamba Server"
+             >previous</a> |</li>
+        <li><a href="../index.html">Mamba v1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Mamba Library API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Galen Collins.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>collection — Mamba Queue Collection &mdash; Mamba v1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Mamba v1.0 documentation" href="../index.html" />
+    <link rel="up" title="Mamba Library API Documentation" href="index.html" />
+    <link rel="next" title="config — Mamba Configuration" href="config.html" />
+    <link rel="prev" title="client — Mamba Client" href="client.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="config.html" title="config — Mamba Configuration"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="client.html" title="client — Mamba Client"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Mamba v1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Mamba Library API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-collection">
+<h1><tt class="xref docutils literal"><span class="pre">collection</span></tt> &#8212; Mamba Queue Collection<a class="headerlink" href="#module-collection" title="Permalink to this headline">¶</a></h1>
+<p><em>Module author: Galen Collins &lt;<a class="reference external" href="mailto:bashwork&#37;&#52;&#48;gmail&#46;com">bashwork<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</em></p>
+<p><em>Section author: Galen Collins &lt;<a class="reference external" href="mailto:bashwork&#37;&#52;&#48;gmail&#46;com">bashwork<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</em></p>
+<div class="section" id="module-mamba.collection">
+<h2>API Documentation<a class="headerlink" href="#module-mamba.collection" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="queue-collection">
+<h3>Queue Collection<a class="headerlink" href="#queue-collection" title="Permalink to this headline">¶</a></h3>
+<p>We wrap all the queues in a collection so that we can control
+the safe creation, statistics, and logging.</p>
+</div>
+<dl class="class">
+<dt id="mamba.collection.QueueCollection">
+<em class="property">class </em><tt class="descclassname">mamba.collection.</tt><tt class="descname">QueueCollection</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#mamba.collection.QueueCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a collection of message queues for the
+mamba system</p>
+<dl class="method">
+<dt id="mamba.collection.QueueCollection.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#mamba.collection.QueueCollection.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Safely closes all queues</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mamba.collection.QueueCollection.delete">
+<tt class="descname">delete</tt><big>(</big><em>key</em><big>)</big><a class="headerlink" href="#mamba.collection.QueueCollection.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete the queue at key if it exists</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>key</em> &#8211; The key to delete</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">True if successful, False otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mamba.collection.QueueCollection.get">
+<tt class="descname">get</tt><big>(</big><em>key</em><big>)</big><a class="headerlink" href="#mamba.collection.QueueCollection.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the data at key if it exists</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>key</em> &#8211; The key to put the next value at</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">The data at key or None if the queue does not exist</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mamba.collection.QueueCollection.get_queues">
+<tt class="descname">get_queues</tt><big>(</big><em>key=None</em><big>)</big><a class="headerlink" href="#mamba.collection.QueueCollection.get_queues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the specified queue or all active queues.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>key</em> &#8211; The queue to retrieve</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">The requested queues</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mamba.collection.QueueCollection.get_statistic">
+<tt class="descname">get_statistic</tt><big>(</big><em>name=None</em><big>)</big><a class="headerlink" href="#mamba.collection.QueueCollection.get_statistic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the requested statistic from the current queue
+Valid statistics are:</p>
+<blockquote>
+<tt class="docutils literal"><span class="pre">get_misses</span></tt>    Total number of get requests with empty responses
+<tt class="docutils literal"><span class="pre">get_hits</span></tt>      Total number of get requests that returned data
+<tt class="docutils literal"><span class="pre">current_bytes</span></tt> Current size in bytes of items in the queues
+<tt class="docutils literal"><span class="pre">current_size</span></tt>  Current number of items across all queues
+<tt class="docutils literal"><span class="pre">total_items</span></tt>   Total number of items stored in queues.</blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameter:</th><td class="field-body"><em>name</em> &#8211; The statistic to retrieve, or none for all</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">the requested statistic</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mamba.collection.QueueCollection.put">
+<tt class="descname">put</tt><big>(</big><em>key</em>, <em>data</em><big>)</big><a class="headerlink" href="#mamba.collection.QueueCollection.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Puts a new value in the queue at key</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><em>key</em> &#8211; The key to put the next value at</li>
+<li><em>data</em> &#8211; The data to put at the specified key</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if the put succeeded, False otherwise</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href=""><tt class="docutils literal"><span class="pre">collection</span></tt> &#8212; Mamba Queue Collection</a><ul>
+<li><a class="reference external" href="#module-mamba.collection">API Documentation</a><ul>
+<li><a class="reference external" href="#queue-collection">Queue Collection</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="client.html"
+                                  title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">client</span></tt> &#8212; Mamba Client</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="config.html"
+                                  title="next chapter"><tt class="docutils literal"><span class="pre">config</span></tt> &#8212; Mamba Configuration</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/library/collection.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="config.html" title="config — Mamba Configuration"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="client.html" title="client — Mamba Client"
+             >previous</a> |</li>
+        <li><a href="../index.html">Mamba v1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Mamba Library API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Galen Collins.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>
