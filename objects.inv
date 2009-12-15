@@ -1,20 +1,20 @@
 # Sphinx inventory version 1
 # Project: Mamba
 # Version: 1.0
-mamba.persistent mod library/persistent.html
 mamba.collection mod library/collection.html
 errors mod library/errors.html
 mamba.config mod library/config.html
+attr mod library/attr.html
 mamba.handler mod library/handler.html
 persistent mod library/persistent.html
 collection mod library/collection.html
 server mod library/server.html
+mamba.attr mod library/attr.html
 handler mod library/handler.html
 client mod library/client.html
 defaults mod library/defaults.html
 mamba.errors mod library/errors.html
-mamba.statistics mod library/statistics.html
-statistics mod library/statistics.html
+mamba.persistent mod library/persistent.html
 config mod library/config.html
 mamba.client mod library/client.html
 mamba.defaults mod library/defaults.html
@@ -24,7 +24,6 @@ mamba.handler.Messages class library/handler.html
 mamba.client.Client.flush method library/client.html
 mamba.collection.QueueCollection.delete method library/collection.html
 mamba.handler.Messages.get_commands staticmethod library/handler.html
-mamba.statistics.Statistics class library/statistics.html
 mamba.handler.Handler.process method library/handler.html
 mamba.collection.QueueCollection.get_queues method library/collection.html
 mamba.persistent.PersistentQueue.put method library/persistent.html
@@ -58,4 +57,5 @@ mamba.server.MambaProtocol class library/server.html
 mamba.client.Client.sizeof method library/client.html
 mamba.collection.QueueCollection class library/collection.html
 mamba.errors.TransactionLogException class library/errors.html
+mamba.attr.AttributeDict class library/attr.html
 mamba.server.MambaServerFactory class library/server.html

@@ -14,4 +14,5 @@ API Documentation
 
 .. autoclass:: Defaults
    :members:
+   :undoc-members:
 
