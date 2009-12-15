@@ -2,7 +2,7 @@
 Mamba
 -----------------------------------------
 
-Released under the the LPL
+Released under the the BSD License
 """
 
 __version__ = "0.1.0"

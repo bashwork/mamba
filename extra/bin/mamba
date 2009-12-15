@@ -1,3 +1,3 @@
 #!/usr/bin/python
-from mamba import server
-server().run()
+from mamba.server import StartServer
+StartServer()

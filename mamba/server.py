@@ -17,7 +17,7 @@ from twisted.internet.protocol import ServerFactory
 from twisted.protocols.basic import LineReceiver
 
 from mamba.handler import Handler
-from mamba.statistics import Statistics
+from mamba.attr import AttributeDict
 from mamba.config import Options
 
 #---------------------------------------------------------------------------#
@@ -110,7 +110,7 @@ class MambaServerFactory(ServerFactory):
         '''
         _logger.debug('Mamba Stared on %s:%s' % (self.host, self.port))
         self.database = QueueCollection()
-        self.statistics = Statistics()
+        self.statistics = AttributeDict()
         self.statistics.start_time = time.time()
 
     def stopFactory(self):

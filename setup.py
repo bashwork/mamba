@@ -52,11 +52,10 @@ command_classes['build_apidocs'] = BuildApiDocs
 #---------------------------------------------------------------------------# 
 # Configuration
 #---------------------------------------------------------------------------# 
-#from mamba import __version__
+from mamba import __version__
 
 setup(name  = 'mamba',
-    version = "0.1",
-    #version = __version__,
+    version = __version__,
     description = "A port of ruby starling to python",
     long_description='''
     Starling is a powerful but simple messaging server that enables reliable
@@ -70,7 +69,7 @@ setup(name  = 'mamba',
         'Environment :: Console',
         'Framework :: Twisted',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
+        'License :: OSI Approved :: BSD License',
         'Operating System :: POSIX :: Linux',
         'Operating System :: Unix',
         'Programming Language :: Python',
@@ -83,7 +82,7 @@ setup(name  = 'mamba',
     maintainer = 'Galen Collins',
     maintainer_email = 'bashwork@gmail.com',
     url='http://github.com/bashwork/mamba/',
-    license = 'LGPL',
+    license = 'BSD',
     packages = find_packages(exclude=['ez_setup', 'tests', 'doc']),
     platforms = ["Linux","Mac OS X","Win"],
     include_package_data = True,

@@ -8,7 +8,7 @@ the safe creation, statistics, and logging.
 import os, thread, logging
 from mamba.persistent import PersistentQueue
 from mamba.errors import QueueCollectionException
-from mamba.statistics import Statistics
+from mamba.attr import AttributeDict
 
 class QueueCollection(object):
     '''
@@ -26,7 +26,7 @@ class QueueCollection(object):
         self.queues = {}
         self.queue_locks = {}
         self.shutdown_lock = thread.allocate_lock()
-        self.statistics = Statistics()
+        self.statistics = AttributeDict()
         self._setup_path(path)
 
     def put(self, key, data):
