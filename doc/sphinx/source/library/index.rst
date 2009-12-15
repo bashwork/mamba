@@ -15,7 +15,7 @@ Contents:
    handler.rst
    persistent.rst
    server.rst
-   statistics.rst
+   attr.rst
 
 Indices and tables
 ==================
