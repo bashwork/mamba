@@ -34,10 +34,10 @@ class Client(memcache.Client):
         @return: The value or None if key doesn't exist
         '''
         while True:
-            response = super(mamba, self).get(*args, **kwargs)
+            response = super(Client, self).get(*args, **kwargs)
             if response:
                 return response
-            time.sleep(WAIT_TIME)
+            time.sleep(self.__wait_time)
     
     def set(self, *args, **kwargs):
         '''
@@ -48,7 +48,7 @@ class Client(memcache.Client):
         '''
         retries = 0
         while retries < 3:
-            result = super(mamba, self).set(*args, **kwargs)
+            result = super(Client, self).set(*args, **kwargs)
             if not result:
                 retries += 1
                 time.sleep(self.__wait_time)

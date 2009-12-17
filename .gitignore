@@ -2,4 +2,5 @@ build/*
 dist/*
 mamba.egg-info/*
 *.pyc
+*.swp
 doc/sphinx/build/*

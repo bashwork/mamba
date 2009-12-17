@@ -27,6 +27,16 @@ class Handler(object):
     in as a continuation.
     '''
 
+    # mamba command regex collection
+    _commands = {
+        lambda s,d,c: s._get(d,c):        re.compile(r'^get (.{1,250})$'),
+        lambda s,d,c: s._set(d,c):        re.compile(r'^set (.{1,250}) ([0-9]+) ([0-9]+) ([0-9]+)$'),
+        lambda s,d,c: s._delete(d,c):     re.compile(r'^delete (.{1,250}) ([0-9]+)$'),
+        lambda s,d,c: s._statistics(d,c): re.compile(r'^stats$'),
+        lambda s,d,c: s._quit(d,c):       re.compile(r'^quit$'),
+        lambda s,d,c: s._shutdown(d,c):   re.compile(r'^shutdown$'),
+    }
+
     def __init__(self, database, statistics):
         '''
         Initializes a new instance of the mamba handler class
@@ -37,6 +47,8 @@ class Handler(object):
         self.database = database
         self.statistics = statistics
         self.exiprations = {}
+        self.state = None
+        self.database.put('galen', 'galen')
 
     def process(self, command, callbacks):
         '''
@@ -50,14 +62,16 @@ class Handler(object):
         if self.state: self._set_data(callbacks, command)
         else:
         # otherwise process the request as an new command
-            for proc, regex in Messages.get_commands():
+            #for proc, regex in Messages.get_commands():
+            for proc, regex in self._commands.iteritems():
                 match = re.match(regex, command)
                 if match:
-                    self.__dict__(proc)(callbacks, match)
+                    #self.__dict__[proc](callbacks, match)
+                    proc(self, callbacks, match)
                     break
             else:
                 _logger.debug("Received unknown command")
-                callbacks['send'](Messages.unknown_command)
+                callbacks['send'](Messages.unknown_response)
 
     # ---------------------------------------------------- #
     # Private Methods
@@ -72,8 +86,8 @@ class Handler(object):
         :return: void
         '''
         _logger.debug("Received a SHUTDOWN command")
+        callbacks['send'](Messages.quit_response)
         callbacks['exit']()
-        # server is going down, no response needed
 
     def _quit(self, callbacks, match):
         '''
@@ -85,7 +99,7 @@ class Handler(object):
         '''
         _logger.debug("Received a QUIT command")
         self.statistics.clean_exits += 1
-        # client is exiting, no response needed
+        callbacks['send'](Messages.quit_response)
 
     def _delete(self, callbacks, match):
         '''
@@ -115,7 +129,9 @@ class Handler(object):
 
         key, flags, expire, length = (
             match.group(1), match.group(2), match.group(3), match.group(4))
-        self.state = {'key': key, 'flags':flags, 'expire':expire, 'length':length}
+        self.state = {
+            'key': key, 'flags':int(flags),
+            'expire':int(expire), 'length':int(length) }
         self.buffer = '' # start state machine
 
     def _set_data(self, callbacks, data):
@@ -127,10 +143,11 @@ class Handler(object):
         :return: void
         '''
         self.buffer += data # what if we get overlapped commands ?
-        if len(self.buffer) == self.state['length'] and buffer[-2:] == '\r\n':
+        if len(self.buffer) == self.state['length']:
             _logger.debug("Finishing SET command")
             compressed = pack(Messages.data_pack_format % (
-                length, flags, expire, self.buffer))
+                self.state['length'], self.state['flags'],
+                self.state['expire'], self.buffer))
             if self.database.put(key, compressed):
                 callbacks['send'](Messages.set_response_success)
             else: callbacks['send'](Messages.set_response_failure)
@@ -145,15 +162,16 @@ class Handler(object):
         :return: The next message, or None if none exist
         '''
         now = time.time()
-        result = None
-        for message in self.database.get(key):
+        flag, result = None, None
+        for message in iter(lambda: self.database.get(key), None):
+            import pdb; pdb.set_trace()
             flag, expire, result = unpack(
-                Messages.data_pack_format % (len(response) - 8), message)
+                Messages.data_pack_format % (len(message) - 8), message)
             if expire == 0 or expire >= now:
                 break
             self.exiprations[key] = 1 + self.expirations.get(key, 0)
             flag, expire, result = (None, None, None) # reset results
-        return result
+        return (flag, result)
     
     def _get(self, callbacks, match):
         '''
@@ -167,8 +185,8 @@ class Handler(object):
         self.statistics.get_requests += 1
 
         key = match.group(1)
-        message = self._get_next_message(key)
-        if message:
+        (flag, data) = self._get_next_message(key)
+        if data:
             callbacks['send'](Messages.get_response % (key, flags, len(data), data))
         else: callbacks['send'](Messages.get_response_empty)
     
@@ -233,29 +251,22 @@ class Messages(object):
 
     # mamba common constants
     data_pack_format      = "!II%ss"
-    unknown_command       = "CLIENT_ERROR bad command line format\r\n"
    
     # mamba get constants
-    get_command           = r'^get (.{1,250})\r\n$'
     get_response          = "VALUE %s %s %s\r\n%s\r\nEND\r\n"
     get_response_empty    = "END\r\n"
    
     # mamba set constants
-    set_command           = r'^set (.{1,250}) ([0-9]+) ([0-9]+) ([0-9]+)\r\n$'
     set_response_success  = "STORED\r\n"
     set_response_failure  = "NOT STORED\r\n"
     set_client_data_error = "CLIENT_ERROR bad data chunk\r\nERROR\r\n"
    
-    # mamba delete constants
-    delete_command        = r'^delete (.{1,250}) ([0-9]+)\r\n$'
+    # mamba other constants
     delete_response       = "END\r\n"
-
-    # mamba stop commands
-    shutdown_command      = r'^shutdown\r\n$'
-    quit_command          = r'^quit\r\n$'
+    quit_response         = "END\r\n"
+    unknown_response      = "CLIENT_ERROR bad command line format\r\n"
    
     # mamba statistics constants
-    stats_command         = r'^stats\r\n$'
     stats_response        = """STAT pid %d\r
 STAT uptime %d\r
 STAT time %d\r
@@ -283,14 +294,14 @@ STAT queue_%(name)s_total_items %(total)d\r
 STAT queue_%(name)s_logsize %(logs)d\r
 STAT queue_%(name)s_expired_items %(expire)d\r"""
 
-    # helper to clean up processing code
+    # mamba command regex collection
     _commands = {
-        '_get':        get_command,
-        '_set':        set_command,
-        '_delete':     delete_command,
-        '_statistics': stats_command,
-        '_quit':       quit_command,
-        '_shutdown':   shutdown_command,
+        'get':        re.compile(r'^get (.{1,250})$'),
+        'set':        re.compile(r'^set (.{1,250}) ([0-9]+) ([0-9]+) ([0-9]+)$'),
+        'delete':     re.compile(r'^delete (.{1,250}) ([0-9]+)$'),
+        'statistics': re.compile(r'^stats$'),
+        'quit':       re.compile(r'^quit$'),
+        'shutdown':   re.compile(r'^shutdown$'),
     }
 
     @staticmethod
@@ -302,6 +313,6 @@ STAT queue_%(name)s_expired_items %(expire)d\r"""
 
         :return: The iterator for the command types
         '''
-        for pair in Methods._commands.iteritems():
+        for pair in Messages._commands.iteritems():
             yield pair
 

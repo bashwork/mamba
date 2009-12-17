@@ -83,6 +83,9 @@ class Options(object):
         parser.add_option("-v", action="count",
             dest="log_level", help="increase logging verbosity",
             default=Defaults.Loglevel)
+        parser.add_option("-t", "--time", action="store", type="int",
+            dest="timeout", help="The default timeout for entries",
+            default=Defaults.Timeout)
         return parser.parse_args()
 
 #---------------------------------------------------------------------------# 

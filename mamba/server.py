@@ -19,6 +19,7 @@ from twisted.protocols.basic import LineReceiver
 from mamba.handler import Handler
 from mamba.attr import AttributeDict
 from mamba.config import Options
+from mamba.collection import QueueCollection
 
 #---------------------------------------------------------------------------#
 # Logging
@@ -56,12 +57,12 @@ class MambaProtocol(LineReceiver):
         _logger.debug("Client Disconnected")
         self.factory.statistics.connections -= 1
 
-    def lineRecieved(self, data):
+    def lineReceived(self, data):
         ''' Callback when we receive any data
 
         :param data: The data sent by the client
         '''
-        logger.debug("RX: %s", data)
+        _logger.debug("RX: %s", data)
         self.factory.statistics.bytes_read += len(data)
         self.handler.process(data, self.callbacks)
 
@@ -108,8 +109,8 @@ class MambaServerFactory(ServerFactory):
 
         :return: void
         '''
-        _logger.debug('Mamba Stared on %s:%s' % (self.host, self.port))
-        self.database = QueueCollection()
+        _logger.debug('Mamba Server Started')
+        self.database = QueueCollection(self.path)
         self.statistics = AttributeDict()
         self.statistics.start_time = time.time()
 
@@ -127,9 +128,7 @@ class MambaServerFactory(ServerFactory):
 
         :return: A mamba message handler
         '''
-        if not self.handler:
-            self.handler = Handler(self.database)
-        return self.handler
+        return Handler(self.database, self.statistics)
 
 #---------------------------------------------------------------------------# 
 # Helper Functions
@@ -141,6 +140,8 @@ def StartServer(options={}):
     '''
     opts = Options.Config()
     opts.update(options) # source any user supplied options
+    _logger.setLevel(logging.DEBUG)
+    logging.basicConfig()
     # daemonize, trap signals (twisted plugin?)
     reactor.listenTCP(options.get('port', opts['port']),
         MambaServerFactory(options=opts))

@@ -51,6 +51,7 @@ class PersistentQueue(Queue):
         self.log_path = os.path.join(self.path, self.name)
         self.total_items = 0
         Queue.__init__(self, 0)
+        self.initial_bytes = self._replay_transactions()
 
     def put(self, value, log=True):
         '''
@@ -116,7 +117,6 @@ class PersistentQueue(Queue):
         fd = os.open(self.log_path, os.O_RDWR|os.O_CREAT)
         self.transactions = os.fdopen(fd, "rb+")
         self.log_size = os.path.getsize(self.log_path)
-        self.initial_bytes = self._replay_transactions(debug)
 
     def _rotate_log(self):
         '''
@@ -149,11 +149,12 @@ class PersistentQueue(Queue):
         :param fd: The file descriptor to read from
         :return: A tuple of the read command and size
         '''
+        import pdb;pdb.set_trace()
         raw_size = fd.read(4)
         if not raw_size:
             return (0, None)
         size = unpack("I", raw_size) 
-        data = fd.read(data)
+        data = fd.read(size)
         return (size, data)
 
     def _replay_transactions(self):
@@ -168,7 +169,7 @@ class PersistentQueue(Queue):
         _logger.debug("Reading back transaction log for queue %s" % self.name)
         for cmd in file_iterator(self.transactions):
             if cmd == self.__trx_cmd_push:
-                (size, data) = _read_command(self.transactions)
+                (size, data) = self._read_command(self.transactions)
                 if not data: continue
                 self.put(data, False)
                 bytes_read -= size
@@ -188,7 +189,7 @@ class PersistentQueue(Queue):
         :return: void
         '''
         # guard with a reader writer lock?
-        self._log_exists_or_throw(log)
+        self._log_exists_or_throw()
         self.transactions.write(data)
         self.transactions.flush()
         self.log_size += len(data)
