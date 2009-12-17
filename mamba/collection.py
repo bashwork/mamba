@@ -135,9 +135,9 @@ class QueueCollection(object):
         # we don't release this until restart
         logging.debug("Closing all the queues")
         self.shutdown_lock.acquire()
-        for name, queue in self.queues:
+        for queue in self.queues.values():
             queue.close()
-            del self.queues[name]
+        self.queues.clear()
 
     # ---------------------------------------------------- #
     # Private Methods

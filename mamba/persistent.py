@@ -149,11 +149,10 @@ class PersistentQueue(Queue):
         :param fd: The file descriptor to read from
         :return: A tuple of the read command and size
         '''
-        import pdb;pdb.set_trace()
         raw_size = fd.read(4)
         if not raw_size:
             return (0, None)
-        size = unpack("I", raw_size) 
+        size = unpack("I", raw_size)[0] 
         data = fd.read(size)
         return (size, data)
 

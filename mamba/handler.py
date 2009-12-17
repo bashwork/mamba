@@ -5,8 +5,15 @@ Mamba Protocol Handler
 '''
 import re, os, time
 from struct import pack, unpack
-from resource import getrusage, RUSAGE_SELF
 import mamba
+try:
+    from resource import getrusage, RUSAGE_SELF
+    get_user_time = lambda: getrusage(RUSAGE_SELF)[0]
+    get_system_time = lambda: getrusage(RUSAGE_SELF)[1]
+except:
+    # TODO make this portable
+    get_user_time = lambda: 1
+    get_system_time = lambda: 2
 
 #---------------------------------------------------------------------------#
 # Logging
@@ -27,16 +34,6 @@ class Handler(object):
     in as a continuation.
     '''
 
-    # mamba command regex collection
-    _commands = {
-        lambda s,d,c: s._get(d,c):        re.compile(r'^get (.{1,250})$'),
-        lambda s,d,c: s._set(d,c):        re.compile(r'^set (.{1,250}) ([0-9]+) ([0-9]+) ([0-9]+)$'),
-        lambda s,d,c: s._delete(d,c):     re.compile(r'^delete (.{1,250}) ([0-9]+)$'),
-        lambda s,d,c: s._statistics(d,c): re.compile(r'^stats$'),
-        lambda s,d,c: s._quit(d,c):       re.compile(r'^quit$'),
-        lambda s,d,c: s._shutdown(d,c):   re.compile(r'^shutdown$'),
-    }
-
     def __init__(self, database, statistics):
         '''
         Initializes a new instance of the mamba handler class
@@ -48,7 +45,6 @@ class Handler(object):
         self.statistics = statistics
         self.exiprations = {}
         self.state = None
-        self.database.put('galen', 'galen')
 
     def process(self, command, callbacks):
         '''
@@ -62,12 +58,10 @@ class Handler(object):
         if self.state: self._set_data(callbacks, command)
         else:
         # otherwise process the request as an new command
-            #for proc, regex in Messages.get_commands():
-            for proc, regex in self._commands.iteritems():
+            for proc, regex in Messages.get_commands():
                 match = re.match(regex, command)
                 if match:
-                    #self.__dict__[proc](callbacks, match)
-                    proc(self, callbacks, match)
+                    getattr(self, proc)(callbacks, match)
                     break
             else:
                 _logger.debug("Received unknown command")
@@ -145,10 +139,9 @@ class Handler(object):
         self.buffer += data # what if we get overlapped commands ?
         if len(self.buffer) == self.state['length']:
             _logger.debug("Finishing SET command")
-            compressed = pack(Messages.data_pack_format % (
-                self.state['length'], self.state['flags'],
-                self.state['expire'], self.buffer))
-            if self.database.put(key, compressed):
+            compressed = pack(Messages.data_pack_format % self.state['length'],
+                self.state['flags'], self.state['expire'], self.buffer)
+            if self.database.put(self.state['key'], compressed):
                 callbacks['send'](Messages.set_response_success)
             else: callbacks['send'](Messages.set_response_failure)
             self.buffer, self.state = ('', None) # reset
@@ -164,7 +157,6 @@ class Handler(object):
         now = time.time()
         flag, result = None, None
         for message in iter(lambda: self.database.get(key), None):
-            import pdb; pdb.set_trace()
             flag, expire, result = unpack(
                 Messages.data_pack_format % (len(message) - 8), message)
             if expire == 0 or expire >= now:
@@ -187,7 +179,7 @@ class Handler(object):
         key = match.group(1)
         (flag, data) = self._get_next_message(key)
         if data:
-            callbacks['send'](Messages.get_response % (key, flags, len(data), data))
+            callbacks['send'](Messages.get_response % (key, flag, len(data), data))
         else: callbacks['send'](Messages.get_response_empty)
     
     def _statistics(self, callbacks, match):
@@ -204,17 +196,17 @@ class Handler(object):
             time.time() - self.statistics.start_time, # total uptime
             time.time(),                              # current time
             mamba.__version__,                        # server version
-            getrusage(RUSAGE_SELF)[0],                # user processor time
-            getrusage(RUSAGE_SELF)[1],                # system processor time
-            self.database.get_stats('current_size'),
-            self.database.get_stats('total_items'),
-            self.database.get_stats('current_bytes'),
+            get_user_time(),                          # user processor time
+            get_system_time(),                        # system processor time
+            self.database.get_statistic('current_size'),
+            self.database.get_statistic('total_items'),
+            self.database.get_statistic('current_bytes'),
             self.statistics.connections,
             self.statistics.total_connections,
             self.statistics.get_requests,
             self.statistics.set_requests,
-            self.database.stats['get_hits'],
-            self.database.stats['get_misses'],
+            self.database.get_statistic('get_hits'),
+            self.database.get_statistic('get_misses'),
             self.statistics.bytes_read,
             self.statistics.bytes_written,
             0,
@@ -248,25 +240,28 @@ class Messages(object):
     The static protocol messages and regular expressions for the
     starling protocol.
     '''
+    # mamba general message constants
+    __trailer             = "\r\n"
+    __empty_message       = "END" + __trailer
 
-    # mamba common constants
+    # mamba common message constants
     data_pack_format      = "!II%ss"
    
-    # mamba get constants
-    get_response          = "VALUE %s %s %s\r\n%s\r\nEND\r\n"
-    get_response_empty    = "END\r\n"
+    # mamba get message constants
+    get_response          = "VALUE %s %s %s\r\n%s\r\n" + __empty_message
+    get_response_empty    = __empty_message
    
-    # mamba set constants
-    set_response_success  = "STORED\r\n"
-    set_response_failure  = "NOT STORED\r\n"
-    set_client_data_error = "CLIENT_ERROR bad data chunk\r\nERROR\r\n"
+    # mamba set message constants
+    set_response_success  = "STORED" + __trailer
+    set_response_failure  = "NOT STORED" + __trailer
+    set_client_data_error = "CLIENT_ERROR bad data chunk\r\nERROR" + __trailer
    
-    # mamba other constants
-    delete_response       = "END\r\n"
-    quit_response         = "END\r\n"
-    unknown_response      = "CLIENT_ERROR bad command line format\r\n"
+    # mamba other message constants
+    delete_response       = __empty_message
+    quit_response         = __empty_message
+    unknown_response      = "CLIENT_ERROR bad command line format" + __trailer
    
-    # mamba statistics constants
+    # mamba statistics message constants
     stats_response        = """STAT pid %d\r
 STAT uptime %d\r
 STAT time %d\r
@@ -285,9 +280,9 @@ STAT get_misses %d\r
 STAT bytes_read %d\r
 STAT bytes_written %d\r
 STAT limit_maxbytes %d\r
-%s\nEND\r\n"""
+%s\n""" + __empty_message
 
-    # mamba queue statistics constants
+    # mamba queue statistics message constants
     queue_stats_response = """
 STAT queue_%(name)s_items %(size)d\r
 STAT queue_%(name)s_total_items %(total)d\r
@@ -296,12 +291,12 @@ STAT queue_%(name)s_expired_items %(expire)d\r"""
 
     # mamba command regex collection
     _commands = {
-        'get':        re.compile(r'^get (.{1,250})$'),
-        'set':        re.compile(r'^set (.{1,250}) ([0-9]+) ([0-9]+) ([0-9]+)$'),
-        'delete':     re.compile(r'^delete (.{1,250}) ([0-9]+)$'),
-        'statistics': re.compile(r'^stats$'),
-        'quit':       re.compile(r'^quit$'),
-        'shutdown':   re.compile(r'^shutdown$'),
+        '_get':        re.compile(r'^get (.{1,250})$'),
+        '_set':        re.compile(r'^set (.{1,250}) ([0-9]+) ([0-9]+) ([0-9]+)$'),
+        '_delete':     re.compile(r'^delete (.{1,250}) ([0-9]+)$'),
+        '_statistics': re.compile(r'^stats$'),
+        '_quit':       re.compile(r'^quit$'),
+        '_shutdown':   re.compile(r'^shutdown$'),
     }
 
     @staticmethod
